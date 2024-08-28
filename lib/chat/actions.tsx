@@ -1,5 +1,9 @@
 import 'server-only'
 
+// 引入 React 和 react-markdown
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+
 import {
   createAI,
   createStreamableUI,
@@ -89,9 +93,8 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
         {
           id: nanoid(),
           role: 'system',
-          content: `[User has purchased ${amount} shares of ${symbol} at ${price}. Total cost = ${
-            amount * price
-          }]`
+          content: `[User has purchased ${amount} shares of ${symbol} at ${price}. Total cost = ${amount * price
+            }]`
         }
       ]
     })
@@ -122,25 +125,22 @@ async function submitUserMessage(content: string) {
       }
     ]
   })
+  
 
   let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
   let textNode: undefined | React.ReactNode
-  
 
   const result = await streamUI({
     model: openai('gpt-3.5-turbo'),
     initial: <SpinnerMessage />,
-    system: `You are a knowledgeable and precise assistant. Your primary goal is to provide accurate information based on your knowledge base. Follow these rules strictly:
+    system: `You are a precise and knowledgeable assistant. Your primary goal is to provide accurate responses based on the information stored in the PostgreSQL database. Follow these guidelines:
 
-    1. If the user's message contains the keyword "add", use the 'addResource' tool to add the information to the database. The content to be added is the entire message after the "add" keyword.
-    
-    2. For all other user queries, use the 'getInformation' tool to search for relevant information.
-    
-    3. If the 'getInformation' tool doesn't find any similar answers or relevant information, respond with "我不知道" (I don't know).
-    
-    4. Only respond based on the information returned by the tools. Do not use any other knowledge or make assumptions.
-    
-    5. Respond in the same language as the user's query.`,
+          1. For all user queries, first attempt to retrieve relevant data from the 'chatbot' table using the user's message. If the data is found, provide the associated response.
+          2. If a relevant response is not found in the 'chatbot' table, generate an appropriate response and save both the user's message and the generated response into the 'chatbot' table.
+          3. After saving the new data, generate an embedding for the user's message, and store this embedding in the 'embeddings' table, linked to the corresponding 'chatbot_id'.
+          4. Base all responses solely on the information provided by the tools and the database. Do not use any external knowledge or make assumptions beyond the tools' responses.
+          5. Always respond in the same language as the user's query to ensure consistency and clarity.
+            `,
     messages: [
       ...aiState.get().messages.map((message: any) => ({
         role: message.role,
@@ -167,15 +167,114 @@ async function submitUserMessage(content: string) {
             }
           ]
         })
+
       } else {
         textStream.update(delta)
       }
 
       return textNode
     },
-    tools: {
-      
 
+    tools: {
+      getFAQAnswer: {
+        description: 'Get answers for user questions from the database',
+        parameters: z.object({
+          query: z.string().describe('The user\'s question'),
+        }),
+        generate: async function* ({ query }) {
+          yield (
+            <BotCard>
+              <div className="inline-flex items-start gap-1 md:items-center">
+                {spinner}
+                <p className="mb-2">Searching for an answer to your question...</p>
+              </div>
+            </BotCard>
+          );
+      
+          try {
+            console.log("Sending request to backend...");
+            const res = await fetch('http://localhost:3001/api/chat', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ message: query })
+            });
+      
+            const response = await res.json();
+            
+            if (response.response) {
+              return (
+                // <BotCard>
+                //   <div dangerouslySetInnerHTML={{ __html: response.response }} />
+                // </BotCard>
+                <BotCard>
+                  <ReactMarkdown>{response.response}</ReactMarkdown>
+                </BotCard>
+              );
+            } else {
+              return (
+                <BotCard>
+                  <p>I'm sorry, I don't have an answer for that question.</p>
+                </BotCard>
+              );
+            }
+          } catch (error) {
+            console.error('Error processing question:', error);
+            return (
+              <BotCard>
+                <p className="text-red-500">An error occurred while processing your question. Please try again later.</p>
+              </BotCard>
+            );
+          }
+        }
+      },
+      
+      getInformation: {
+        description: 'Search for relevant information in the database',
+        parameters: z.object({
+          query: z.string().describe('The search query'),
+        }),
+        generate: async function* ({ query }) {
+          yield (
+            <BotCard>
+              <div className="inline-flex items-start gap-1 md:items-center">
+                {spinner}
+                <p className="mb-2">Searching for relevant information...</p>
+              </div>
+            </BotCard>
+          );
+    
+          try {
+            console.log("sending request to backend...");
+            const res = await fetch('http://localhost:3001/api/chat', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ message: query })  // 發送查詢訊息
+            });
+    
+            const response = await res.json();
+            const result = response.response || "我不知道";
+    
+            return (
+              <BotCard>
+                <h3 className="text-lg font-semibold mb-2">Search Results:</h3>
+                <p>{result}</p>
+              </BotCard>
+            );
+          } catch (error) {
+            console.error('Error performing search:', error);
+            return (
+              <BotCard>
+                <p className="text-red-500">An error occurred while searching. Please try again later.</p>
+              </BotCard>
+            )
+          }
+        }
+      },
+      
 
       listStocks: {
         description: 'List three imaginary stocks that are trending.',
@@ -475,8 +574,6 @@ async function submitUserMessage(content: string) {
           )
         }
       }
-
-      
     }
   })
 
@@ -485,8 +582,40 @@ async function submitUserMessage(content: string) {
     display: result.value
   }
 }
+// Helper function to save the message and response to the database
+async function saveMessageAndResponse(message: string, response: string) {
+  await fetch('http://localhost:3001/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      "messages": [
+        {
+          "role": "user",
+          "content": message
+        },
+        {
+          "role": "assistant",
+          "content": response
+        }
+      ]
+    }),
+  });
+}
 
-
+// Helper function to generate and save embedding
+async function generateEmbedding(message: string) {
+  const res = await fetch('http://localhost:3001/api/embeddings', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ message }),
+  });
+  const response = await res.json();
+  console.log('Embedding result:', response);
+}
 
 export type AIState = {
   chatId: string

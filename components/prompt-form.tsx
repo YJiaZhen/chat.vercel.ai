@@ -42,7 +42,7 @@ export function PromptForm({
       ref={formRef}
       onSubmit={async (e: any) => {
         e.preventDefault()
-
+      console.log('@@@@')
         // Blur focus on mobile
         if (window.innerWidth < 600) {
           e.target['message']?.blur()
