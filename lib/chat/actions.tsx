@@ -222,7 +222,7 @@ You are a precise and knowledgeable assistant. Your primary goal is to provide a
             } else {
               return (
                 <BotCard>
-                  <p>I'm sorry, I don't have an answer for that question.</p>
+                  <p>I&apos;m sorry, I don&apos;t have an answer for that question.</p>
                 </BotCard>
               );
             }
