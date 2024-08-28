@@ -7,6 +7,7 @@ import { getUser } from './app/login/actions'
 
 export const { auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  trustHost: true,
   providers: [
     Credentials({
       async authorize(credentials) {
