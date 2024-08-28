@@ -131,16 +131,23 @@ async function submitUserMessage(content: string) {
   let textNode: undefined | React.ReactNode
 
   const result = await streamUI({
-    model: openai('gpt-3.5-turbo'),
+    model: openai('gpt-4o-mini'),
     initial: <SpinnerMessage />,
-    system: `You are a precise and knowledgeable assistant. Your primary goal is to provide accurate responses based on the information stored in the PostgreSQL database. Follow these guidelines:
+    system: `
+You are a precise and knowledgeable assistant. Your primary goal is to provide accurate responses based on the information stored in the PostgreSQL database. Follow these guidelines:
 
-          1. For all user queries, first attempt to retrieve relevant data from the 'chatbot' table using the user's message. If the data is found, provide the associated response.
-          2. If a relevant response is not found in the 'chatbot' table, generate an appropriate response and save both the user's message and the generated response into the 'chatbot' table.
-          3. After saving the new data, generate an embedding for the user's message, and store this embedding in the 'embeddings' table, linked to the corresponding 'chatbot_id'.
-          4. Base all responses solely on the information provided by the tools and the database. Do not use any external knowledge or make assumptions beyond the tools' responses.
-          5. Always respond in the same language as the user's query to ensure consistency and clarity.
-            `,
+1. For all user queries, first attempt to retrieve relevant data from the 'chatbot' table using the user's message. If data is found, provide the associated response.
+
+2. If a relevant response is not found in the 'chatbot' table, generate an appropriate response and save both the user's message and the generated response into the 'chatbot' table.
+
+3. After saving the new data, generate an embedding for the user's message, and store this embedding in the 'embeddings' table, linked to the corresponding 'chatbot_id'.
+
+4. Base all responses solely on the information provided by the tools and the database. Do not use any external knowledge or make assumptions beyond the tools' responses.
+
+5. Translate the response into the user's language, ensuring only plain text is translated. Maintain the original meaning and tone as much as possible.
+
+6. Always respond in the same language as the user's query to ensure consistency and clarity.
+`,
     messages: [
       ...aiState.get().messages.map((message: any) => ({
         role: message.role,
@@ -203,13 +210,13 @@ async function submitUserMessage(content: string) {
       
             const response = await res.json();
             
-            if (response.response) {
+            if (response.translatedResponse) {
               return (
                 // <BotCard>
                 //   <div dangerouslySetInnerHTML={{ __html: response.response }} />
                 // </BotCard>
                 <BotCard>
-                  <ReactMarkdown>{response.response}</ReactMarkdown>
+                  <ReactMarkdown>{response.translatedResponse}</ReactMarkdown>
                 </BotCard>
               );
             } else {
