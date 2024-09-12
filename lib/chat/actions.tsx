@@ -39,7 +39,7 @@ import { saveChat } from '@/app/actions'
 import { SpinnerMessage, UserMessage } from '@/components/stocks/message'
 import { Chat, Message } from '@/lib/types'
 import { auth } from '@/auth'
-
+console.log(process.env.NEXT_PUBLIC_API_DOMAIN)
 async function confirmPurchase(symbol: string, price: number, amount: number) {
   'use server'
 
@@ -202,7 +202,7 @@ You are a precise and knowledgeable assistant. Your primary goal is to provide a
       
           try {
             console.log("Sending request to backend...");
-            const res = await fetch('http://localhost:3001/api/chat', {
+            const res = await fetch(`http://${process.env.NEXT_PUBLIC_API_DOMAIN}:3001/api/chat`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ You are a precise and knowledgeable assistant. Your primary goal is to provide a
     
           try {
             console.log("sending request to backend...");
-            const res = await fetch('http://localhost:3001/api/chat', {
+            const res = await fetch(`http://${process.env.NEXT_PUBLIC_API_DOMAIN}:3001/api/chat`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
