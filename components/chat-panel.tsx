@@ -36,23 +36,23 @@ export function ChatPanel({
 
   const exampleMessages = [
     {
-      heading: 'What are the',
-      subheading: 'trending memecoins today?',
+      heading: '關於導師',
+      subheading: '如何選擇導師？',
       message: `What are the trending memecoins today?`
     },
     {
-      heading: 'What is the price of',
-      subheading: '$DOGE right now?',
+      heading: '關於課程',
+      subheading: '如何重新安排或取消我的課程？',
       message: 'What is the price of $DOGE right now?'
     },
     {
-      heading: 'I would like to buy',
-      subheading: '42 $DOGE',
+      heading: '如何登入我的帳戶？',
+      subheading: '使用 Google 登入',
       message: `I would like to buy 42 $DOGE`
     },
     {
-      heading: 'What are some',
-      subheading: `recent events about $DOGE?`,
+      heading: '關於上課',
+      subheading: `如何進入網路課堂？`,
       message: `What are some recent events about $DOGE?`
     }
   ]

@@ -201,14 +201,16 @@ You are a precise and knowledgeable assistant. Your primary goal is to provide a
           );
       
           try {
-            console.log("Sending request to backend...");
-            const res = await fetch(`http://${process.env.NEXT_PUBLIC_API_DOMAIN}:3001/api/chat`, {
+            console.log("Sending request to backend...",`${process.env.NEXT_PUBLIC_API_DOMAIN}/api/chat`,query);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_DOMAIN}/api/chat`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({ message: query })
             });
+
+            console.log('call api')
       
             const response = await res.json();
             
@@ -256,7 +258,7 @@ You are a precise and knowledgeable assistant. Your primary goal is to provide a
     
           try {
             console.log("sending request to backend...");
-            const res = await fetch(`http://${process.env.NEXT_PUBLIC_API_DOMAIN}:3001/api/chat`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_DOMAIN}/api/chat`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

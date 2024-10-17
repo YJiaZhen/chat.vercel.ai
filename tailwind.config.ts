@@ -54,7 +54,20 @@ module.exports = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
-        }
+        },
+        lavender: {
+          100: '#E6E6FA', // 淡紫色（Lavender）
+          200: '#D8BFD8', // 薊紫色（Thistle）
+          300: '#DDA0DD', // 梅紅色（Plum）
+          400: '#DA70D6', // 蘭花色（Orchid）
+          500: '#BA55D3', // 中紫色（Medium Orchid）
+          600: '#9370DB', // 中紫羅蘭色（Medium Purple）
+          700: '#8A2BE2', // 藍紫色（Blue Violet）
+          800: '#9400D3', // 深紫色（Dark Violet）
+          900: '#4B0082', // 靛青色（Indigo）
+        },
+        lightgrey: '#D3D3D3',
+
       },
       borderRadius: {
         lg: 'var(--radius)',
